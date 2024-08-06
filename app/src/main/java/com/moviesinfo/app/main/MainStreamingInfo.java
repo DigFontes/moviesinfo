@@ -1,11 +1,14 @@
 package com.moviesinfo.app.main;
 
+import com.moviesinfo.app.models.Episode;
 import com.moviesinfo.app.models.EpisodesData;
 import com.moviesinfo.app.models.SeasonData;
 import com.moviesinfo.app.models.SeriesData;
 import com.moviesinfo.app.service.APIConsumer;
 import com.moviesinfo.app.service.DataConverter;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -66,5 +69,32 @@ public class MainStreamingInfo {
                 .sorted(Comparator.comparing(EpisodesData::rating).reversed())
                 .limit(5)
                 .forEach(System.out::println);
+
+        List<Episode> episodes = seasons.stream()
+                .flatMap(s -> s.episodesDataList().stream()
+                        .map(d -> new Episode(s.season(), d))
+                ).collect(Collectors.toList());
+
+        System.out.println("\n");
+        episodes.forEach(System.out::println);
+
+        System.out.println("A partir de que ano você deseja ver os episódios? ");
+        var year  = reader.nextInt();
+        reader.nextLine();
+
+
+        LocalDate dateSearching = LocalDate.of(year, 1,1);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        episodes.stream()
+                .filter(e -> e.getRelease() != null && e.getRelease().isAfter(dateSearching))
+                .forEach(e -> System.out.println(
+                        "Season: " + e.getSeason() +
+                                " Episode: " + e.getTitle() +
+                                " Released: " + e.getRelease().format(formatter)
+                ));
+
+
     }
 }
